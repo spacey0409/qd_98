@@ -1,0 +1,17 @@
+cron_hour: 1-5
+cron_minute: 3
+#代理
+proxy: http://127.0.0.1:7890
+#用户名
+username: xxxx
+#密码
+password: xxxx
+#随机评论
+comments:
+  - 怎一个6字了得
+  - 身材很好啊
+  - 感觉要被榨干
+  - 妹子真不错
+  - 感觉要精尽人亡了
+  - 看着感觉很顶啊
+  - 就喜欢这种类型的
