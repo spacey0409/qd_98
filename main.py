@@ -10,7 +10,7 @@ class SehuatangJob:
     def __init__(self):
         self.url = "https://www.sehuatang.net/"
         # 浏览器设置
-        self.isHeadless = False  # 是否无头模式
+        self.isHeadless = True  # 是否无头模式
 
         self.mod_url = (
             "https://www.sehuatang.net/forum.php?mod=forumdisplay&fid=103"
@@ -32,34 +32,45 @@ class SehuatangJob:
         sleep_time = round(random.uniform(2, 4), 2)
         sleep(sleep_time)
 
-    def setup(self):
-        playwright = sync_playwright().start()
-        self.browser = playwright.chromium.launch(headless=False, proxy={"server": self.proxy})
-        self.context = self.browser.new_context()
-        self.page = self.context.new_page()
+    def start(self):
+        with sync_playwright() as p:
+            self.browser = p.chromium.launch(headless=self.isHeadless, proxy={"server": self.proxy})
+            self.context = self.browser.new_context()
+            self.page = self.context.new_page()
+            self.get_page()
+            self.page.close()
+            self.context.close()
+            self.browser.close()
 
-    # 获取一个新的页面
+
     def get_page(self):
         try:
             self.page.goto(self.mod_url)
             self.random_sleep()
 
             # 确认
+            print('---正在确认---')
             self.confirm()
 
             # 登录
+            print('---正在登录---')
             self.login()
 
             # 签到
+            print('---正在签到---')
             dd_sign_str = self.sign_in()
+
+            if '今日已签到' in str(dd_sign_str):
+                return
             if ('请至少发表或回复一个帖子后再来签到' == str(dd_sign_str)):
                 self.page.goto(self.mod_url)
                 sleep(2)
                 # 回复帖子
+                print('---正在回复帖子---')
                 self.do_reply()
                 # 签到
+                print('---正在签到---')
                 dd_sign_str = self.sign_in()
-
         except Exception as e:
             print(e)
 
@@ -82,11 +93,16 @@ class SehuatangJob:
         message_input = new_page.locator('//*[@id="postmessage"]')
         randint = random.randint(0, len(self.comments) - 1)
         comment = self.comments[randint]
+        print(f'---回复内容:[ {comment} ]---')
         message_input.fill(comment)
         new_page.click('//*[@id="postsubmit"]')
 
     def sign_in(self):
         self.page.goto(self.sign_in_url)
+        button_str = self.page.query_selector('//*[@id="wp"]/div[2]/div[1]/div[1]').text_content()
+        if '今日已签到' in str(button_str):
+            print('---今日已签到---')
+            return '今日已签到'
         self.page.click('//*[@id="wp"]/div[2]/div[1]/div[1]')
         self.random_sleep()
         # 获取签到updatesecqaa_id
@@ -119,9 +135,8 @@ class SehuatangJob:
         self.random_sleep()
 
     def my_job(self):
-        self.setup()
-        self.get_page()
-        self.browser.close()
+        self.start()
+
 
 
 if __name__ == "__main__":
@@ -129,4 +144,5 @@ if __name__ == "__main__":
     play = SehuatangJob()
     play.read_config("conf.yaml")
     sched.add_job(play.my_job, 'cron', hour=play.cron_hour, minute=play.cron_minute)
+    print('---正在启动---')
     sched.start()

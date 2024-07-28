@@ -1,0 +1,11 @@
+version: "3"
+services:
+  qd_98:
+    image: spacey0409/qd_98:1.0.0
+    command: python3 /app/main.py
+    volumes:
+      - /Users/joey/Downloads/conf.yaml:/app/conf.yaml
+    restart: always
+    network_mode: host
+    hostname: qd_98
+    container_name: qd_98
