@@ -5,8 +5,11 @@ from playwright.sync_api import sync_playwright
 import yaml
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+import utils
+
 
 class SehuatangJob:
+
     def __init__(self):
         self.url = "https://www.sehuatang.net/"
         # 浏览器设置
@@ -23,6 +26,8 @@ class SehuatangJob:
         self.view_url = (
             "https://www.sehuatang.net/forum.php?mod=viewthread&tid="
         )
+
+
 
     # 随机等待时间
     def random_sleep(self):
@@ -49,15 +54,15 @@ class SehuatangJob:
             self.random_sleep()
 
             # 确认
-            print('---正在确认---')
+            utils.logger.info('---正在确认---')
             self.confirm()
 
             # 登录
-            print('---正在登录---')
+            utils.logger.info('---正在登录---')
             self.login()
 
             # 签到
-            print('---正在签到---')
+            utils.logger.info('---正在签到---')
             dd_sign_str = self.sign_in()
 
             if '今日已签到' in str(dd_sign_str):
@@ -66,15 +71,16 @@ class SehuatangJob:
                 self.page.goto(self.mod_url)
                 sleep(2)
                 # 回复帖子
-                print('---正在回复帖子---')
+                utils.logger.info('---正在回复帖子---')
                 self.do_reply()
                 # 签到
-                print('---正在签到---')
+                utils.logger.info('---正在签到---')
                 dd_sign_str = self.sign_in()
         except Exception as e:
-            print(e)
+            utils.logger.info(e)
 
     def read_config(self, file_path):
+        utils.logger.info('---正在启动---')
         with open(file_path, "r") as f:
             config = yaml.safe_load(f)
             self.proxy = config['proxy']
@@ -93,7 +99,7 @@ class SehuatangJob:
         message_input = new_page.locator('//*[@id="postmessage"]')
         randint = random.randint(0, len(self.comments) - 1)
         comment = self.comments[randint]
-        print(f'---回复内容:[ {comment} ]---')
+        utils.logger.info(f'---回复内容:[ {comment} ]---')
         message_input.fill(comment)
         new_page.click('//*[@id="postsubmit"]')
 
@@ -101,7 +107,7 @@ class SehuatangJob:
         self.page.goto(self.sign_in_url)
         button_str = self.page.query_selector('//*[@id="wp"]/div[2]/div[1]/div[1]').text_content()
         if '今日已签到' in str(button_str):
-            print('---今日已签到---')
+            utils.logger.info('---今日已签到---')
             return '今日已签到'
         self.page.click('//*[@id="wp"]/div[2]/div[1]/div[1]')
         self.random_sleep()
@@ -144,5 +150,5 @@ if __name__ == "__main__":
     play = SehuatangJob()
     play.read_config("conf.yaml")
     sched.add_job(play.my_job, 'cron', hour=play.cron_hour, minute=play.cron_minute)
-    print('---正在启动---')
+
     sched.start()
