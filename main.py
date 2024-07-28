@@ -102,6 +102,7 @@ class SehuatangJob:
         utils.logger.info(f'---回复内容:[ {comment} ]---')
         message_input.fill(comment)
         new_page.click('//*[@id="postsubmit"]')
+        self.random_sleep()
 
     def sign_in(self):
         self.page.goto(self.sign_in_url)
