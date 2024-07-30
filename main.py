@@ -27,8 +27,6 @@ class SehuatangJob:
             "https://www.sehuatang.net/forum.php?mod=viewthread&tid="
         )
 
-
-
     # 随机等待时间
     def random_sleep(self):
         """
@@ -46,7 +44,6 @@ class SehuatangJob:
             self.page.close()
             self.context.close()
             self.browser.close()
-
 
     def get_page(self):
         try:
@@ -81,7 +78,7 @@ class SehuatangJob:
 
     def read_config(self, file_path):
         utils.logger.info('---正在启动---')
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding='utf-8') as f:
             config = yaml.safe_load(f)
             self.proxy = config['proxy']
             self.username = config['username']
@@ -94,7 +91,7 @@ class SehuatangJob:
         with self.context.expect_page() as view_page:
             self.page.click('//*[@id="threadlisttableid"]/tbody[11]/tr/td[1]')
         new_page = view_page.value
-        self.page.wait_for_load_state()
+        new_page.wait_for_load_state(state='load')
         new_page.click('//*[@id="post_reply"]')
         message_input = new_page.locator('//*[@id="postmessage"]')
         randint = random.randint(0, len(self.comments) - 1)
@@ -143,7 +140,6 @@ class SehuatangJob:
 
     def my_job(self):
         self.start()
-
 
 
 if __name__ == "__main__":
